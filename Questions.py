@@ -1,7 +1,7 @@
 from data import questions
 
 class Question:
-    def init(self, ques):
+    def __init__(self, ques):
         self.score = 0
         self.count_questions = 0
         self.List = ques
