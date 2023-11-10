@@ -10,12 +10,11 @@ def main(page: Page):
     page.title = "Quiz Me"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    textInputLogin = InputBorder(cls=TextField(value='name',width=400))
+    textInputLogin = TextField(value='name',width=400)
     textInputPassword = TextField(value='password',width=400)
     btnSubmit = ElevatedButton(text="submit")
     column =Container(content= Column(
-
-            # horizontal_alignment=CrossAxisAlignment.CENTER,
+            horizontal_alignment=CrossAxisAlignment.CENTER,
             controls=[textInputLogin, textInputPassword,btnSubmit])
     )
     page.add(column)
