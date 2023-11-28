@@ -1,41 +1,28 @@
-from flet import *
-import flet as ft
+from Questions import QuestionRegister
 
+from question_model import Question
+from data import question_data
+from Quiz import Quiz, QuizInterface
+from flet import app, Page
 
+question_bank = []
+# question_data = QuestionRegister.loadAll()
+
+for question in question_data:
+    question_text = question["question"]
+    question_answer = question["correct_answer"]
+    new_question = Question(question_text, question_answer)
+    question_bank.append(new_question)
+    print(question_answer)
 
 
 def main(page: Page):
-    page.window_width = 700
-    page.window_height = 500
-    page.title = "Quiz Me"
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    textInputLogin = TextField(value='name',width=400)
-    textInputPassword = TextField(value='password',width=400)
-    btnSubmit = ElevatedButton(text="submit")
-    column =Container(content= Column(
-            horizontal_alignment=CrossAxisAlignment.CENTER,
-            controls=[textInputLogin, textInputPassword,btnSubmit])
-    )
-    page.add(column)
-
-if __name__ == "__main__":
-    app(target=main)
+    page.window_width = 400
+    page.window_height = 600
+    page.title = "Quiz"
+    quiz = Quiz(question_bank)
+    quiz_ui = QuizInterface(quiz)
+    page.add(quiz_ui)
 
 
-
-# import flet as ft
-# from flet import *
-#
-#
-# t = Text(
-#     'hello',size=30,color=ft.colors.BLUE
-# )
-#
-# def main(page: Page):
-#     page.window_width = 500
-#     page.window_height = 500
-#     page.add(t)
-#
-#
-# app(target=main)
+app(target=main)

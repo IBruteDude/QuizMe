@@ -1,19 +1,27 @@
-from uuid import uuid4, UUID
+from uuid import uuid4
 import json
+import hashlib
+
+
+# id: uuid
+# name: str
+# password: <encrypted>
+# topics: list[str]
+# quizScores: dict[id, QuizResult]
+# progress: ProgressRegister
+
 
 class Topic:
-    def __init__(self, name : str, questionids : list[UUID] = []):
+    def __init__(self, name : str, questionids : list[str] = []):
         self.id = str(uuid4())
         self.name = name
         self.questionids = questionids
 
 class User:
-    topics = ["OOP", "CPP", "CSharp"]
-
     def __init__(self, userName, password, topics: list[Topic] = []):
         self.id = str(uuid4())
-        self.userName = userName
-        self.password = password
+        self.name = userName
+        self.password = hashlib.sha256(bytes(password))
         self.topics = topics
         self.score = 0
 
@@ -30,15 +38,11 @@ class User:
                     x = 1
 
                 if x == 1 and key == "questionTopics":
-
                     for _key, _value in value.items():
-
                         if _key == "OOP":
                             oop = _value
-
                         elif _key == "CPP":
                             cpp = _value
-
                         else:
                             csharp = _value
 
@@ -96,29 +100,14 @@ class User:
         return True
 
 
-    def addUser(self):
-        with open("UserData.json", "r") as File:
-            jsonData = json.load(File)
-
-        dic = {
-            "id": len(jsonData) + 1,
-            "userName": self.userName,
-            "password": self.password
-        }
-        jsonData.append(dic)
-        with open("UserData.json", "w") as File:
-            json.dump(jsonData, File, indent=4)
-
 
 class UserRegister:
-    @classmethod
-    def validName(str):
-        pass
+    storagefile = "users.json"
+    StoredType = User
+    @staticmethod
+    def validName(name) -> bool:
+        return True
 
-    @classmethod
-    def save(User):
-        pass
-
-    @classmethod
-    def checkPassword(User, password: str):
-        pass
+    @staticmethod
+    def validPassword(password: str):
+        return True

@@ -1,1 +1,30 @@
-[{"id": 1, "statement": "Would you like to eat ma7shi?", "type": "TFQ", "correct_answer": true, "score": 4, "time": "T12:22:21"}, {"id": 2, "statement": "Would you like to eat kabab, koshari, green burger or all of the above?", "type": "MCQ", "choices": ["koshari", "kabab", "green burger", "all of the above"], "correct_answer": 0, "score": 10, "time": "T12:22:22"}]
+[
+	{
+		"id": 1,
+		"statement": "Would you like to eat ma7shi?",
+		"type": "TFQ",
+		"choices": [
+			true,
+			false
+		],
+		"correct_answer": true,
+		"score": 4,
+		"time": "T12:22:21"
+	},
+	{
+		"id": 2,
+		"statement": "Would you like to eat kabab, koshari, green burger or all of the above?",
+		"type": "MCQ",
+		"choices": [
+			"koshari",
+			"kabab",
+			"green burger",
+			"all of the above"
+		],
+		"correct_answer": [
+			1
+		],
+		"score": 10,
+		"time": "T12:22:22"
+	}
+]

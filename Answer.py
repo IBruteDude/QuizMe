@@ -10,6 +10,8 @@ class TFQ(Answer):
         self.__answer = answer
 
     def check(self, other) -> bool:
+        if (type(other) is str):
+            return self.__answer != bool(int(other))
         assert type(self) is type(other)
         if self.__answer == other.__answer:
             return True
@@ -23,6 +25,8 @@ class SCQ(Answer):
         self.__answer = answer
 
     def check(self, other) -> bool:
+        if (type(other) is str):
+            return self.__answer == int(other)
         assert type(self) is type(other)
         if  self.__answer == other.__answer and\
             self.__totalchoices == other.__totalchoices:
@@ -37,6 +41,8 @@ class MCQ(Answer):
         self.__answers = sorted(answers)
 
     def check(self, other) -> bool:
+        if (type(other) is str):
+            return self.__answers == sorted([int(choice) for choice in other.split()])
         assert type(self) is type(other)
         if  self.__answers == other.__answers and\
             self.__totalchoices == other.__totalchoices:
