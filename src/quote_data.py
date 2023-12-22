@@ -1,3 +1,5 @@
+
+# data of quote in case no internet
 quotes = [
     {
       "quote": "Life isn’t about getting and having, it’s about giving and being.",

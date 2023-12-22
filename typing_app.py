@@ -1,23 +1,16 @@
 import threading
 from time import sleep
 
-from flet import (
-  Container, Row, Column, TextField, Text,
-  Control, UserControl, ElevatedButton, TextButton, KeyboardEvent,
-  icons, colors, margin, padding, border, alignment,
-  BoxShadow, MainAxisAlignment, CrossAxisAlignment, Offset, ShadowBlurStyle, FontWeight
-)
-
-from setting import (
-  score_style, container_style, text_style, char_style, user_buttons,
-  user_inputs, words_to_type, quote_generator, generated_quote
-)
-
+from flet import *
+from setting import *
 
 class StatPanel:
   def __init__(self, label_text: str, stat_format: str, var_ref):
+    # the function to get the value of the variable
     self.func = var_ref
+    # the format for displaying the variable
     self.format = stat_format
+    # the label and display of the counter
     self.label = Text(label_text, **score_style)
     self.stat_text = Text(stat_format.format(self.func()), **score_style)
     self.controls = [
@@ -33,6 +26,7 @@ class StatPanel:
 
 
   def update(self, val=None):
+    """ Update the displayed value """
     if val:
       self.stat_text.value = self.format.format(val)
     else:
@@ -41,64 +35,74 @@ class StatPanel:
 
 class Cursor:
   def __init__(self, char_slots: list[Control], displayed_text: str):
+    """ Add the text content and add the displays of each character """
     self.text = displayed_text.strip()
     self.chars = char_slots
     for char in self.text:
       self.chars.append(Container(**char_style(char)))
-    self.curr = 0
+    self.current_position = 0
 
 
   def refresh(self):
+    """ Reset all the characters in the text and the cursor position """
+    # reset character looks
     for char in self.chars:
       char.bgcolor = colors.TRANSPARENT
       char.content.color = colors.GREY_700
-    self.curr = 0
+      char.border = border.only()
+    # show cursor at the first char
+    self.current_position = 0
     self.chars[0].border = border.only(bottom=border.BorderSide(1))
 
 
   def clear(self, new_text: str):
+    """ Change the text and reset the cursor """
     self.text = new_text.strip()
+    # clear the displayed characters add the new ones
     self.chars.clear()
     for char in self.text:
       self.chars.append(Container(**char_style(char)))
-    self.curr = 0
+    self.current_position = 0
 
 
   def trigger(self, key: str):
-    if self.curr == len(self.text) - 1:
-      self.chars[self.curr].__dict__.update({
-        'bgcolor': colors.GREEN_700,
-        'border': border.only(bottom=border.BorderSide(1)),
-        'color': colors.GREY_700,
-        'content.color': colors.WHITE,
-      })
-      return
+    """ Process the triggered key press """
+    if self.current_position == len(self.chars):
+      return False
 
     if "Backspace" == key:
-      self.chars[self.curr].border = border.only(bottom=border.BorderSide(1))
-      self.chars[self.curr - 1].border = border.only(bottom=border.BorderSide(5, "white"))
-      self.chars[self.curr - 1].bgcolor = colors.TRANSPARENT
-      self.chars[self.curr - 1].content.color = colors.GREY_700
-      if self.curr > 0:
-        self.curr -= 1
-    elif key.lower() == self.text[self.curr]:
-      self.chars[self.curr].bgcolor = colors.GREEN_700
+      # go back one character and change the cursor position and looks
+      self.chars[self.current_position].border = border.only(bottom=border.BorderSide(1))
+      self.chars[self.current_position - 1].border = border.only(bottom=border.BorderSide(5, "white"))
+      self.chars[self.current_position - 1].bgcolor = colors.TRANSPARENT
+      self.chars[self.current_position - 1].content.color = colors.GREY_700
+      if self.current_position > 0:
+        self.current_position -= 1
+    elif key.lower() == self.text[self.current_position]:
+      # change the color of the right character to green
+      self.chars[self.current_position].bgcolor = colors.GREEN_700
 
-      self.chars[self.curr + 1].border = border.only(bottom=border.BorderSide(5, "white"))
-      self.chars[self.curr].border = border.only(bottom=border.BorderSide(1))
-      self.chars[self.curr].color = colors.GREY_700
-      self.chars[self.curr].content.color = colors.WHITE
-      self.curr += 1
-    elif key.lower() != self.text[self.curr]:
-      self.chars[self.curr].bgcolor = colors.RED_700
+      self.chars[self.current_position].border = border.only(bottom=border.BorderSide(1))
+      self.chars[self.current_position].color = colors.GREY_700
+      self.chars[self.current_position].content.color = colors.WHITE
+      # bounds check
+      if self.current_position < len(self.chars) - 1:
+        self.chars[self.current_position + 1].border = border.only(bottom=border.BorderSide(5, "white"))
+      self.current_position += 1
+    elif key.lower() != self.text[self.current_position]:
+      # change the color of the right character to green
+      self.chars[self.current_position].bgcolor = colors.RED_700
 
-      self.chars[self.curr + 1].border = border.only(bottom=border.BorderSide(5, "white"))
-      self.chars[self.curr].border = border.only(bottom=border.BorderSide(1))
-      self.chars[self.curr].content.color = colors.WHITE
-      self.curr += 1
+      self.chars[self.current_position].border = border.only(bottom=border.BorderSide(1))
+      self.chars[self.current_position].content.color = colors.WHITE
+      if self.current_position < len(self.chars) - 1:
+        self.chars[self.current_position + 1].border = border.only(bottom=border.BorderSide(5, "white"))
+      self.current_position += 1
     else:
-      self.chars[self.curr].bgcolor = colors.GREY_700
-      self.chars[self.curr].content.color = colors.WHITE
+      # handle any exceptional input
+      self.chars[self.current_position].bgcolor = colors.GREY_700
+      self.chars[self.current_position].content.color = colors.WHITE
+    return True
 
 
 class TypingApp(UserControl):
@@ -106,28 +110,31 @@ class TypingApp(UserControl):
     super().__init__()
     self.StartRound = True
     self.quote_text = words_to_type
+    self.text_displayed = Row(wrap=True)
+
+    self.cursor = Cursor(self.text_displayed.controls, self.quote_text)
 
     # UI controls
-    self.text_displayed = Row(wrap=True)
+    self.input = TextField(**user_inputs)
     self.start_button = ElevatedButton(**user_buttons['start'])
     self.start_button.on_click = self.start
     self.reset_button = ElevatedButton(**user_buttons['reset'])
     self.reset_button.on_click = self.reset
-    self.input = TextField(**user_inputs)
+    self.clear_button = ElevatedButton(**user_buttons['clear'])
+    self.clear_button.on_click = self.clear
 
-    # Labels for displaying scores
     self.total_time = 60
-    self.wrong_words = 0
-    self.total_words = 0
-    self.time = 0
-    self.wpm = 0
+    self.reset_counters()
 
+    # The stat counters display setup
     self.elapsed_time_stat = StatPanel("Elapsed Time", "{}", lambda: self.time)
     self.remaining_time_stat = StatPanel("Remaining Time", "{}", lambda: self.total_time - self.time)
     self.total_words_stat = StatPanel("Total Words", "{}", lambda: self.total_words)
-    self.wpm_stat = StatPanel("WPM", "{:.2f}", lambda: self.wpm)
     self.wrong_words_stat = StatPanel("Wrong Words", "{}", lambda: self.wrong_words)
-    self.accuracy_stat = StatPanel("Accuracy", "{:.2f}%", lambda: self.__calculate_accuracy(len(self.quote_text), self.wrong_words))
+    self.wpm_stat = StatPanel("WPM", "{:.2f}", lambda: self.__calculate_wpm())
+    self.accuracy_stat = StatPanel("Accuracy", "{:.2f}%", lambda: self.__calculate_accuracy())
+
+    self.author_name = Text(value=f"author: {generated_quote[1]}")
 
     # Game variables
     self.stats = [
@@ -143,10 +150,12 @@ class TypingApp(UserControl):
     self.back_button = TextButton(icon=icons.ARROW_BACK, icon_color=colors.WHITE)
     self.stop_flag_timer = threading.Event()
     self.stop_flag_count = threading.Event()
+    # the column of the whole test layout
     self.layout = Column(
       alignment="center",
       horizontal_alignment="center",
       controls=[
+        # container for the back and time selection buttons
         Container(
           margin=margin.only(top=10, bottom=10),
           border_radius=10,
@@ -164,21 +173,22 @@ class TypingApp(UserControl):
                   ),
                   TextButton(
                     text="15",
-                    on_click=lambda x: (self.refresh(), self.change_game_time(15))[1],
+                    on_click=lambda _: (self.refresh(), self.elapsed_time_stat.update(0), self.change_game_time(15))[2],
                   ),
                   TextButton(
                     text="30",
-                    on_click=lambda x: (self.refresh(), self.change_game_time(30))[1],
+                    on_click=lambda _: (self.refresh(), self.elapsed_time_stat.update(0), self.change_game_time(30))[2],
                   ),
                   TextButton(
                     text="60",
-                    on_click=lambda x: (self.refresh(), self.change_game_time(60))[1],
+                    on_click=lambda _: (self.refresh(), self.elapsed_time_stat.update(0), self.change_game_time(60))[2],
                   ),
                 ]
               )
             ]
           ),
         ),
+        # the container of the test characters and displayed text
         Container(
           margin=margin.only(top=10, bottom=10),
           border_radius=10,
@@ -192,6 +202,7 @@ class TypingApp(UserControl):
           ),
           content=self.text_displayed,
         ),
+        # a place to position the quote auther name
         Row(
           alignment=MainAxisAlignment.END,
           controls=[
@@ -206,10 +217,10 @@ class TypingApp(UserControl):
                 offset=Offset(0, 0),
                 blur_style=ShadowBlurStyle.OUTER,
               ),
-              content=Text(value=f"author: {generated_quote[1]}"),
-            ),
+              content=self.author_name),
           ],
         ),
+        # all the counters for the different statistics
         Row(
           wrap=True,
           controls=[
@@ -221,17 +232,18 @@ class TypingApp(UserControl):
             Column(controls=self.stats[5].controls),
           ],
         ),
+        # inputs and user controls
         Row(
           alignment=MainAxisAlignment.CENTER,
           controls=[
             self.input,
             self.start_button,
+            self.clear_button,
             self.reset_button,
           ]
         ),
       ],
     )
-    self.cursor = Cursor(self.text_displayed.controls, self.quote_text)
 
   # Build the UI layout
   def build(self):
@@ -240,8 +252,8 @@ class TypingApp(UserControl):
     return self.layout
 
   def refresh(self):
-    for stat in self.stats:
-      stat.update(0)
+    # reset all the counters to a starting state
+    self.reset_counters()
     self.remaining_time_stat.update()
     self.cursor.refresh()
 
@@ -253,13 +265,15 @@ class TypingApp(UserControl):
 
   def on_keyboard(self, e: KeyboardEvent):
     # Handling keyboard input during typing
-    self.cursor.trigger(e.key)
-    for control in self.stats:
-      control.update()
-    self.update()
+    if self.start_button.disabled and not self.input.focus():
+      self.cursor.trigger(e.key)
+      for control in self.stats:
+        control.update()
+      self.update()
 
   def start(self, e):
     """Start both threads"""
+    self.StartRound = True
     self.stop_flag_timer = threading.Thread(target=self.__start_timer, args=(e,))
     self.stop_flag_timer.start()
 
@@ -274,83 +288,86 @@ class TypingApp(UserControl):
       self.remaining_time_stat.update()
       sleep(1)
       self.update()
-      if (
-        self.time == self.total_time
-        or len(self.cursor.text) == self.cursor.curr
-      ):
-        self.StartRound = False
-        self.calculateScores(self.StartRound)
+      if (not self.StartRound or
+          self.time == self.total_time or
+          self.cursor.current_position == len(self.cursor.text)):
+        self.__calculateScores()
         self.input.disabled = True
         return
     self.reset_button.disabled = False
     self.update()
 
-  def calculateScores(self, StartRound):
-    user_entered_paragraph = []
+  def reset_counters(self):
+    self.wrong_words = 0
     self.total_words = 0
-    if not StartRound:
-      user_entered_paragraph = self.input.value.split()
-      self.total_words = len(user_entered_paragraph)
+    self.time = 0
+    self.wpm = 0
 
-    self.total_words_stat.update()
-    self.update()
-
-    words_to_type_array = self.quote_text.split()
-
-    for pair in list(zip(words_to_type_array, user_entered_paragraph)):
-      if pair[0] != pair[1]:
-        self.wrong_words += 1
-        self.wrong_words_stat.update()
-
-    self.wpm = ((self.total_words - self.wrong_words) / self.time) * 60
-    self.wpm_stat.update()
+  def clear(self, e):
+    self.reset_counters()
+    for stat in self.stats:
+      stat.update()
+    self.input.value = ""
+    self.start_button.disabled = False
+    self.cursor.refresh()
+    self.StartRound = False
     self.update()
 
   def reset(self, e):
     # Reset all values and controls
+    self.reset_counters()
     self.elapsed_time_stat.update(0)
     self.remaining_time_stat.update()
-    self.total_time = 60
-    self.total_words = 0
-    self.wrong_words = 0
-    self.time = 0
     self.start_button.disabled = False
     self.reset_button.disabled = False
     self.input.value = ""
     self.input.disabled = True
 
-    # self.cursor.refresh()
-    self.cursor.clear(quote_generator.get_quote()[0])
-
-    self.wpm_stat.update(0)
+    self.cursor.refresh()
+    new_quote = quote_generator.get_quote()
+    self.quote_text = new_quote[0]
+    self.cursor.clear(new_quote[0])
+    self.author_name.value = f"author: {new_quote[1]}"
+    self.reset_counters()
     self.accuracy_stat.update()
-    self.total_words_stat.update()
-    self.wrong_words_stat.update()
     self.update()
 
-  # def update(self):
-  #   for stat in self.stats:
-  #     stat.update()
-  #   super().update()
+  def __calculateScores(self):
+    user_entered_paragraph = []
+    self.total_words = 0
+    self.wrong_words = 0
+    user_entered_paragraph = self.input.value.split()
+    self.total_words = len(user_entered_paragraph)
+    # print(f"User input: {user_entered_paragraph}")
 
-  def __calculate_gross_wpm(self, word_length=5):
-    total_characters, total_time_seconds = len(self.quote_text), int((self.time / 60) * 60)
+    self.total_words_stat.update()
+    self.update()
 
-    if total_time_seconds == 0:
-      total_time_seconds = 0
+    words_to_type_array = self.quote_text.split()
+    print(f"Actual text: {user_entered_paragraph}")
 
-    total_words = total_characters / word_length
-    gross_wpm = (
-      total_words / total_time_seconds
-    ) * 60  # Convert total time to minutes
-    return gross_wpm
+    for pair in list(zip(words_to_type_array, user_entered_paragraph)):
+      if pair[0].lower() != pair[1].lower():
+        self.wrong_words += 1
 
-  def __calculate_accuracy(self, total_characters, total_errors):
-    accuracy_percentage = (
-      (total_characters - total_errors) / total_characters
-    ) * 100
+    self.wrong_words_stat.update()
+
+    for stat in self.stats:
+      stat.update()
+    self.update()
+
+  def __calculate_wpm(self):
+    if self.time == 0:
+      self.wpm = 0
+    else:
+      self.wpm = (self.total_words - self.wrong_words) / self.time * 60
+    return self.wpm
+
+  def __calculate_accuracy(self):
+    no_chars, no_errors = self.cursor.current_position, 0
+    for i in range(no_chars - 1):
+      if self.quote_text[i] == self.input.value[i]:
+        no_errors += 1
+    # print(f'errors: {no_errors}, chars: {no_chars}')
+    accuracy_percentage = no_errors / (no_chars - 1) * 100 if no_chars > 1 else 0
     return accuracy_percentage
-
-  def __calculate_net_wpm(self, gross_wpm, error_rate):
-    net_wpm = max(0, gross_wpm - error_rate)
-    return net_wpm

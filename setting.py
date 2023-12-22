@@ -58,7 +58,6 @@ char_style = lambda c: {
     color=colors.GREY_700,
     no_wrap=True,
   )
-  # 'bgcolor': colors.with_opacity(0.1, colors.GREY_100),
 }
 
 user_buttons = {
@@ -71,7 +70,13 @@ user_buttons = {
     'text': "Reset",
     'icon': icons.RESTART_ALT,
     'icon_color': colors.WHITE,
-    'tooltip': "Restart Test",
+    'tooltip': "Restart",
+  },
+  'clear': {
+    'text': "Clear",
+    'icon': icons.CLEAR,
+    'icon_color': colors.WHITE,
+    'tooltip': "Clear",
   },
 }
 
