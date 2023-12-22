@@ -1,7 +1,7 @@
 from uuid import uuid4
 import json
 import hashlib
-
+from Register import Register
 
 # id: uuid
 # name: str
@@ -12,18 +12,38 @@ import hashlib
 
 
 class Topic:
-    def __init__(self, name : str, questionids : list[str] = []):
-        self.id = str(uuid4())
-        self.name = name
-        self.questionids = questionids
+    __no_of_instances = 0
+    def __init__(self, name : str, questionids : list[str] = [], **kw):
+        if kw:
+            self.id = kw['id']
+            self.name = kw['name']
+            self.questionids = kw['questionids']
+        else:
+            self.id = Topic.__no_of_instances
+            Topic.__no_of_instances += 1
+            self.name = name
+            self.questionids = questionids
+
+class TopicRegister(Register):
+    storagefile = "topics.json"
+    StoredType = Topic
 
 class User:
-    def __init__(self, userName, password, topics: list[Topic] = []):
-        self.id = str(uuid4())
-        self.name = userName
-        self.password = hashlib.sha256(bytes(password))
-        self.topics = topics
-        self.score = 0
+    __no_of_instances = 0
+    def __init__(self, userName=None, password=None, topics: list[Topic] = [], *args, **kw):
+        if kw:
+            self.id = kw['id']
+            self.name = kw['name']
+            self.password = kw.get('password')
+            self.topics = kw.get('topics')
+            self.score = kw['score']
+        else:
+            self.id = User.__no_of_instances
+            User.__no_of_instances += 1
+            self.name = userName
+            self.password = password
+            self.topics = topics
+            self.score = 0
 
     @classmethod
     def CreateUserInstanceForLogIn(cls, UserName, Password, Topic):
@@ -101,9 +121,11 @@ class User:
 
 
 
-class UserRegister:
+class UserRegister(Register):
     storagefile = "users.json"
     StoredType = User
+
+
     @staticmethod
     def validName(name) -> bool:
         return True
@@ -111,3 +133,4 @@ class UserRegister:
     @staticmethod
     def validPassword(password: str):
         return True
+

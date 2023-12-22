@@ -1,13 +1,15 @@
 import asyncio
-from time import sleep
 from flet import Text, Column, Row, FilledTonalButton, colors, UserControl
+from json import load
 import threading as th
+from time import sleep
 
 THEME_COLOR = "#375362"
 
 
 class QuizInterface(UserControl):
-    def __init__(self, quiz):
+    def __init__(self):
+        quiz = 
         super().__init__()
         self.timer = Text(value=f"00:00")
         self.quizBrain = quiz

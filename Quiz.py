@@ -1,11 +1,16 @@
 from datetime import time
 from enum import EnumType
-from uuid import uuid4, UUID
 from html import unescape
+from json import load
+import random
+from uuid import uuid4, UUID
 
-
+from Register import Register
 from Answer import Answer
 from Questions import Question
+from User import User
+
+from time import time
 
 
 class Grading(EnumType):
@@ -24,42 +29,59 @@ class Grading(EnumType):
         raise ValueError("invalid grade")
 
 class Quiz:
-    def __init__(self,
-                 duration: str,
-                 questions: list[Question]):
-        self.id = uuid4()
-        self.duration = time.fromisoformat('T' + duration)
-        self.questions = questions
-    def __init__(self, q_list):
-        self.question_number = 0
-        self.score = 0
-        self.question_list = q_list
-        self.current_question = None
+    __no_of_instances = 0
+    def __init__(self, questions: list[Question], category: str | None =None):
+        questions = load(open('storagefiles/questionsbytopic.json'))
 
-    def still_has_questions(self):
-        return self.question_number < len(self.question_list)
+        self.id = Quiz.__no_of_instances
+        Quiz.__no_of_instances += 1
+        self.questions = random.choices(questions, 20)
+        self.duration = sum(question.time for question in questions)
+        self.__iterator = iter(self.questions)
 
-    def next_question(self):
-        self.current_question = self.question_list[self.question_number]
-        self.question_number += 1
-        q_text = unescape(self.current_question.statement)
-        return f"Q.{self.question_number}: {q_text}"
-        # user_answer = input(f"Q.{self.question_number}: {q_text} (True/False): ")
-        # self.check_answer(user_answer)
+    def __iter__(self):
+        return self
 
-    def check_answer(self, user_answer: Answer) -> bool:
-        if self.current_question.answer.check(user_answer):
-            self.score += 1
-            return True
-        else:
-            return False
+    def __next__(self):
+        return next(self.__iterator)
+
+
+class QuizRegister(Register):
+    storagefile = 'quizes.json'
+    StoredType = Register
+
+
+class QuizSession:
+    def __init__(self, quiz: Quiz, user: User):
+        timing = time()
+        duration = quiz.duration
+        while time() - timing < duration:
+            pass
+
+
+
+# from flet import Text, Column, Row, FilledTonalButton, colors, UserControl
+# class QuizInterface(User):
+#     Text(value="TEXT")
+#     Text(value="TEXT").value
+#     Text(value="TEXT")
+#     FilledTonalButton(on_click=lambda : 0, text="TEXT").disabled
+#     Text.color = colors
+#     # Text.update()
+
+#     def __init__(self, quiz: Quiz):
+#         super().__init__()
+
+#     def build(self):
+#         return Column(controls=[
+#             Row(controls=[self.score_text]),
+#             self.question_text,
+#             Row(controls=[self.true_button, self.false_button])
+#         ])
 
 # import asyncio
 # from time import sleep
-# from flet import Text, Column, Row, FilledTonalButton, colors, UserControl
-# from Quiz import Quiz
 # import threading as th
-# from Answer import Answer, MCQ, SCQ, TFQ
 
 # THEME_COLOR = "#375362"
 
@@ -67,13 +89,11 @@ class Quiz:
 #     def __init__(self, quiz: Quiz):
 #         super().__init__()
 #         self.timer = Text(value=f"00:00")
-#         self.quizBrain = quiz
-#         self.score_text = Text(value=f"Score: 0")
-#         self.question_text = Text(value="")
+#         self.text1 = Text(value=f"Score: {"24"}")
+#         self.text2 = Text(value="")
 
 #         self.true_button = FilledTonalButton(on_click=self.right_answer, text="True")
 #         self.false_button = FilledTonalButton(on_click=self.wrong_answer, text="False")
-#         self.get_next_question()
 
 #     def build(self):
 #         return Column(controls=[

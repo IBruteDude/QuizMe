@@ -11,7 +11,13 @@ class TFQ(Answer):
 
     def check(self, other) -> bool:
         if (type(other) is str):
-            return self.__answer != bool(int(other))
+            other = other.strip()
+            if (other == '1') or other.lower() == 'true':
+                return self.__answer == True
+            elif other == '2' or other.lower() == 'false':
+                return self.__answer == False
+            else:
+                raise ValueError(f"invalid input {other}")
         assert type(self) is type(other)
         if self.__answer == other.__answer:
             return True
@@ -36,7 +42,7 @@ class SCQ(Answer):
 
 class MCQ(Answer):
     def __init__(self, totalchoices: int, answers: list[int]):
-        assert all(answer <= totalchoices and answer > 0 for answer in answers)
+        assert all(answer < totalchoices and answer >= 0 for answer in answers)
         self.__totalchoices = totalchoices
         self.__answers = sorted(answers)
 

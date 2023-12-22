@@ -1,0 +1,48 @@
+[
+	{
+		"id": 1,
+		"statement": "Would you like to eat ma7shi?",
+		"type": "TFQ",
+		"choices": [
+			true,
+			false
+		],
+		"correct_answer": true,
+		"score": 4,
+		"time": "T12:22:21"
+	},
+	{
+		"id": 2,
+		"statement": "Would you like to eat kabab, koshari, green burger or all of the above?",
+		"type": "MCQ",
+		"choices": [
+			"koshari",
+			"kabab",
+			"green burger",
+			"all of the above"
+		],
+		"correct_answer": [
+			1
+		],
+		"score": 10,
+		"time": "T12:22:22"
+	},
+	{
+	  "id": 3,
+	  "statement": "What is the capital of France?",
+	  "type": "MCQ",
+	  "choices": ["Berlin", "Madrid", "Paris", "Rome"],
+	  "correct_answer": [3],
+	  "score": 8,
+	  "time": "T12:22:23"
+	},
+	{
+	  "id": 4,
+	  "statement": "Which planet is known as the Red Planet?",
+	  "type": "MCQ",
+	  "choices": ["Mars", "Venus", "Jupiter", "Saturn"],
+	  "correct_answer": [1],
+	  "score": 6,
+	  "time": "T12:22:24"
+	}	  
+]
